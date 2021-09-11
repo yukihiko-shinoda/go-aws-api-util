@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  go-aws-api-util:
+    build: .
+    image: futureys/go-aws-api-util:development
+    volumes:
+      - ~/.aws:/root/.aws
