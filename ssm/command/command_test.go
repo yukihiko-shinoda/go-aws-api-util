@@ -61,7 +61,7 @@ func TestGetLatestApplyAnsiblePlaybooksInvocations(t *testing.T) {
 		},
 		{},
 	}
-	invocations, err := GetLatestApplyAnsiblePlaybooksInvocations(mockClient)
+	invocations, err := GetApplyAnsiblePlaybooksInvocations(mockClient, nil)
 	if err != nil {
 		t.Errorf("%v", invocations)
 	}

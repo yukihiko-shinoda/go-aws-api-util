@@ -14,16 +14,15 @@ type ListCommandsListCommandInvocationsAPI interface {
 	ListCommandInvocations(ctx context.Context, params *ssm.ListCommandInvocationsInput, optFns ...func(*ssm.Options)) (*ssm.ListCommandInvocationsOutput, error)
 }
 
-func GetLatestApplyAnsiblePlaybooksInvocations(client ListCommandsListCommandInvocationsAPI) ([]types.CommandInvocation, error) {
-	latestCommand, err := getLatestApplyAnsiblePlaybooks(client)
-	if err != nil {
-		return nil, err
+func GetApplyAnsiblePlaybooksInvocations(client ListCommandsListCommandInvocationsAPI, commandId *string) ([]types.CommandInvocation, error) {
+	if commandId == nil {
+		latestCommand, err := getLatestApplyAnsiblePlaybooks(client)
+		if err != nil {
+			return nil, err
+		}
+		commandId = latestCommand.CommandId
 	}
-	invocations, err := getAllInvocations(client, *latestCommand)
-	if err != nil {
-		return invocations, err
-	}
-	return invocations, nil
+	return getAllInvocations(client, *commandId)
 }
 
 func getLatestApplyAnsiblePlaybooks(client ListCommandsListCommandInvocationsAPI) (*types.Command, error) {
@@ -47,11 +46,11 @@ func getLatestApplyAnsiblePlaybooks(client ListCommandsListCommandInvocationsAPI
 	return &command, nil
 }
 
-func getAllInvocations(client ListCommandsListCommandInvocationsAPI, command types.Command) ([]types.CommandInvocation, error) {
+func getAllInvocations(client ListCommandsListCommandInvocationsAPI, commandId string) ([]types.CommandInvocation, error) {
 	invocations := []types.CommandInvocation{}
 	var nextToken *string = nil
 	for ok := true; ok; ok = nextToken != nil {
-		output, err := client.ListCommandInvocations(context.TODO(), createListCommandInvocationsInput(command, nextToken))
+		output, err := client.ListCommandInvocations(context.TODO(), createListCommandInvocationsInput(commandId, nextToken))
 		if err != nil {
 			return invocations, err
 		}
@@ -70,9 +69,9 @@ func getAllInvocations(client ListCommandsListCommandInvocationsAPI, command typ
 	return invocations, nil
 }
 
-func createListCommandInvocationsInput(command types.Command, nextToken *string) *ssm.ListCommandInvocationsInput {
+func createListCommandInvocationsInput(commandId string, nextToken *string) *ssm.ListCommandInvocationsInput {
 	return &ssm.ListCommandInvocationsInput{
-		CommandId: command.CommandId,
+		CommandId: &commandId,
 		Details:   false,
 		NextToken: nextToken,
 	}
