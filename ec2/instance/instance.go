@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -33,7 +34,13 @@ func GetTags(client DescribeInstancesAPI, commandInvocation ssmTypes.CommandInvo
 	if err != nil {
 		return nil, err
 	}
+	if len(result.Reservations) == 0 {
+		return nil, errors.New("Reservations no longer exist.")
+	}
 	reservation := result.Reservations[0]
+	if len(reservation.Instances) == 0 {
+		return nil, errors.New("Instances no longer exist.")
+	}
 	instance := reservation.Instances[0]
 	return instance.Tags, err
 }
